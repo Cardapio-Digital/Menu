@@ -53,9 +53,29 @@
         .dark .text-secondary { color: #9ca3af; }
         .theme-bar-bg { background-color: rgba(243, 244, 246, 0.95); }
         .dark .theme-bar-bg { background-color: rgba(17, 24, 39, 0.95); }
-        .filter-btn { background-color: white; color: #1f2937; border-color: #d1d5db; }
-        .dark .filter-btn { background-color: #374151; color: #d1d5db; border-color: #4b5563; }
-        .dark .filter-btn:hover { background-color: #4b5563; }
+        
+        /* Estilos dos Botões de Filtro */
+        .filter-btn {
+            background-color: white;
+            color: #1f2937;
+            border-color: #d1d5db;
+            transition: all 0.2s ease-in-out;
+        }
+        .dark .filter-btn {
+            background-color: #374151;
+            color: #d1d5db;
+            border-color: #4b5563;
+        }
+        .dark .filter-btn:hover {
+            background-color: #4b5563;
+        }
+        /* ATUALIZAÇÃO: Estilo do botão ATIVO usando a Cor Primária */
+        .filter-btn.active {
+            background-color: var(--cor-primaria);
+            color: var(--cor-texto-primaria);
+            border-color: var(--cor-primaria);
+            transform: scale(1.05);
+        }
         
         .header-plaque-bg {
             background-color: rgba(243, 244, 246, 0.8);
@@ -235,16 +255,36 @@
         }
 
         function renderFilters(categories) {
-            categoryFiltersContainer.innerHTML = `<a href="#menu-container" onclick="event.preventDefault(); window.scrollTo(0, 0);" class="filter-btn px-4 py-2 rounded-full shadow-sm hover:bg-gray-200 transition-all">Todos</a>`;
+            categoryFiltersContainer.innerHTML = ''; // Limpa antes de adicionar
             
+            // Cria o botão "Todos"
+            const todosBtn = document.createElement('a');
+            todosBtn.href = "#";
+            todosBtn.textContent = "Todos";
+            // Adiciona a classe 'active' por defeito
+            todosBtn.className = "filter-btn active border px-4 py-2 rounded-full shadow-sm transition-all";
+            todosBtn.onclick = (e) => { e.preventDefault(); window.scrollTo(0, 0); };
+            categoryFiltersContainer.appendChild(todosBtn);
+
+            // Cria os outros botões de categoria
             categories.forEach(category => {
                 const filterButton = document.createElement('a');
                 const buttonText = category['Nome_Categoria'] || category['Titulo_Exibicao'];
                 const categoryId = category['Nome_Categoria'] || '';
                 filterButton.href = `#category-${categoryId.replace(/\s+/g, '-')}`;
                 filterButton.textContent = buttonText;
-                filterButton.className = "filter-btn px-4 py-2 rounded-full shadow-sm hover:bg-gray-200 transition-all";
+                filterButton.className = "filter-btn border px-4 py-2 rounded-full shadow-sm transition-all";
                 categoryFiltersContainer.appendChild(filterButton);
+            });
+            
+            // Adiciona o listener para gerir o estado ativo
+            categoryFiltersContainer.addEventListener('click', (e) => {
+                if(e.target.tagName === 'A') {
+                    // Remove a classe 'active' de todos os botões
+                    categoryFiltersContainer.querySelectorAll('a').forEach(btn => btn.classList.remove('active'));
+                    // Adiciona a classe 'active' apenas ao botão clicado
+                    e.target.classList.add('active');
+                }
             });
         }
 
@@ -364,7 +404,6 @@
         async function initMenu() {
             setupThemeSwitcher();
             const cacheKey = 'cardapioData';
-            // CORREÇÃO: Cache reduzido para 1 minuto
             const cacheDuration = 1 * 60 * 1000; 
             try {
                 const cachedData = localStorage.getItem(cacheKey);
