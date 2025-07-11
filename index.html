@@ -69,7 +69,6 @@
         .dark .filter-btn:hover {
             background-color: #4b5563;
         }
-        /* ATUALIZAÇÃO: Estilo do botão ATIVO usando a Cor Primária */
         .filter-btn.active {
             background-color: var(--cor-primaria);
             color: var(--cor-texto-primaria);
@@ -255,18 +254,8 @@
         }
 
         function renderFilters(categories) {
-            categoryFiltersContainer.innerHTML = ''; // Limpa antes de adicionar
+            categoryFiltersContainer.innerHTML = `<a href="#menu-container" onclick="event.preventDefault(); window.scrollTo(0, 0);" class="filter-btn active border px-4 py-2 rounded-full shadow-sm transition-all">Todos</a>`;
             
-            // Cria o botão "Todos"
-            const todosBtn = document.createElement('a');
-            todosBtn.href = "#";
-            todosBtn.textContent = "Todos";
-            // Adiciona a classe 'active' por defeito
-            todosBtn.className = "filter-btn active border px-4 py-2 rounded-full shadow-sm transition-all";
-            todosBtn.onclick = (e) => { e.preventDefault(); window.scrollTo(0, 0); };
-            categoryFiltersContainer.appendChild(todosBtn);
-
-            // Cria os outros botões de categoria
             categories.forEach(category => {
                 const filterButton = document.createElement('a');
                 const buttonText = category['Nome_Categoria'] || category['Titulo_Exibicao'];
@@ -277,12 +266,9 @@
                 categoryFiltersContainer.appendChild(filterButton);
             });
             
-            // Adiciona o listener para gerir o estado ativo
             categoryFiltersContainer.addEventListener('click', (e) => {
                 if(e.target.tagName === 'A') {
-                    // Remove a classe 'active' de todos os botões
                     categoryFiltersContainer.querySelectorAll('a').forEach(btn => btn.classList.remove('active'));
-                    // Adiciona a classe 'active' apenas ao botão clicado
                     e.target.classList.add('active');
                 }
             });
@@ -307,8 +293,21 @@
                 const categorySection = document.createElement('section');
                 categorySection.id = categoryId;
                 categorySection.className = "pt-4 fade-in";
+                
+                // CORREÇÃO: Lógica para determinar o caminho da imagem
+                const getImageUrl = (path) => {
+                    if (!path) return '';
+                    if (path.startsWith('http')) {
+                        return path; // Usa o URL completo se for o caso
+                    }
+                    return `imagens/${path}`; // Assume que é um ficheiro local
+                };
+
+                const categoryImageUrl = getImageUrl(category['Foto_Categoria']);
+                const categoryBgStyle = categoryImageUrl ? `background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${categoryImageUrl}')` : '';
+
                 categorySection.innerHTML = `
-                    <div class="category-header-bg rounded-xl p-10 md:p-14 mb-8 shadow-lg flex flex-col justify-center items-center text-center" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('imagens/${category['Foto_Categoria']}')">
+                    <div class="category-header-bg rounded-xl p-10 md:p-14 mb-8 shadow-lg flex flex-col justify-center items-center text-center" style="${categoryBgStyle}">
                         <h2 class="text-4xl md:text-5xl font-bold">${category['Titulo_Exibicao']}</h2>
                         <p class="mt-2 max-w-2xl text-lg opacity-90">${category['Descricao_Secao']}</p>
                     </div>
@@ -317,11 +316,12 @@
                             const isAvailable = item['Disponivel']?.toLowerCase() !== 'não';
                             const itemClasses = isAvailable ? '' : 'opacity-60 grayscale';
                             const soldOutBadge = !isAvailable ? `<div class="absolute top-0 left-0 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-br-lg z-10">ESGOTADO</div>` : '';
+                            const itemImageUrl = getImageUrl(item['Foto_URL']);
 
                             return `
                             <div class="card-bg rounded-lg shadow-lg overflow-hidden flex flex-col transform hover:shadow-xl hover:-translate-y-1 transition-all duration-300 fade-in ${itemClasses} relative">
                                 ${soldOutBadge}
-                                <img src="imagens/${item['Foto_URL']}" alt="${item['Nome']}" class="w-full h-48 object-cover" loading="lazy" onerror="this.style.display='none'">
+                                <img src="${itemImageUrl}" alt="${item['Nome']}" class="w-full h-48 object-cover" loading="lazy" onerror="this.style.display='none'">
                                 <div class="p-5 flex flex-col flex-grow">
                                     <div class="flex justify-between items-start mb-2">
                                         <h3 class="text-2xl font-bold text-main">${item['Nome']}</h3>
